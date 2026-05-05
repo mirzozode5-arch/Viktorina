@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Викторинаи Авто - Мирзоев Киёмиддин</title>
+    <style>
+        :root {
+            --bg-color: #001529;
+            --container-bg: #002140;
+            --text-color: #ffffff;
+            --accent-color: #00a2ff;
+            --correct-color: #28a745;
+            --wrong-color: #dc3545;
+        }
+
+        .light-mode {
+            --bg-color: #f0f2f5;
+            --container-bg: #ffffff;
+            --text-color: #1a1a1a;
+            --accent-color: #007bff;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: 0.4s;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 550px;
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+
+        h1 { color: var(--accent-color); text-transform: uppercase; letter-spacing: 2px; }
+
+        .menu-btn {
+            width: 100%;
+            padding: 16px;
+            margin: 12px 0;
+            border: none;
+            border-radius: 12px;
+            background-color: var(--accent-color);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .menu-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,162,255,0.4); }
+
+        .option-btn {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border: 2px solid var(--accent-color);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-color);
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .correct { background-color: var(--correct-color) !important; border-color: var(--correct-color) !important; color: white; }
+        .wrong { background-color: var(--wrong-color) !important; border-color: var(--wrong-color) !important; color: white; }
+
+        #timer { font-size: 30px; font-weight: bold; color: #ffcc00; margin-bottom: 15px; }
+        #hint-display { color: #ffcc00; font-weight: bold; margin: 10px 0; height: 20px; }
+        
+        .hidden { display: none; }
+        .dev-info { line-height: 1.8; text-align: justify; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="screen-menu">
+    <h1>АВТО ВИКТОРИНА</h1>
+    <p>Хуш омадед ба бозӣ!</p>
+    <button class="menu-btn" onclick="startGame()">1. Бозӣ кардан</button>
+    <button class="menu-btn" onclick="showScreen('screen-settings')">2. Танзимот</button>
+    <button class="menu-btn" onclick="showScreen('screen-dev')">3. Таҳиягар</button>
+</div>
+
+<div class="container hidden" id="screen-game">
+    <div id="timer">45</div>
+    <div id="question-counter" style="margin-bottom: 10px; opacity: 0.7;"></div>
+    <h2 id="question-text">Савол</h2>
+    <div id="options-box"></div>
+    <div id="hint-display"></div>
+    <button class="menu-btn" style="background:#6c757d;" onclick="useHint()">❓ Нодонам (Имтиёз)</button>
+    <button class="menu-btn" style="background:#e74c3c; margin-top:20px;" onclick="exitToMenu()">Баромадан</button>
+</div>
+
+<div class="container hidden" id="screen-settings">
+    <h2>Танзимот</h2>
+    <p>Реҷаи намоишро интихоб кунед:</p>
+    <button class="menu-btn" onclick="toggleTheme('dark')">Шабона (Сиёҳ/Кабуд)</button>
+    <button class="menu-btn" style="background:#95a5a6;" onclick="toggleTheme('light')">Рӯзона (Сафед)</button>
+    <hr>
+    <button class="menu-btn" style="background:#555;" onclick="showScreen('screen-menu')">Ба қафо</button>
+</div>
+
+<div class="container hidden" id="screen-dev">
+    <h2>Дар бораи таҳиягар</h2>
+    <div class="dev-info">
+        <p>Таҳиягар <strong>Мирзоев Киёмиддин</strong> донишҷӯ ҳаст ва мақсади асосии он рушд кардан ва ғолиб шудан дар соҳаи интихобкардааш мебошад. Инчунин ҳамаи ҳуқуқҳои муаллиф ҳифз шудааст.</p>
+    </div>
+    <p>© 2026 Ҳамаи ҳуқуқҳо маҳфузанд</p>
+    <button class="menu-btn" onclick="showScreen('screen-menu')">Ба қафо</button>
+</div>
+
+<script>
+    const questions = [
+        {q: "Кадом ширкат модели 'Astra'-ро истеҳсол мекунад?", o: ["BMW", "Opel", "Ford", "Audi"], a: "Opel"},
+        {q: "Логотипи Ferrari кадом ҳайвон аст?", o: ["Шер", "Барзагов", "Асп", "Уқоб"], a: "Асп"},
+        {q: "Ватани ширкати Toyota кадом давлат аст?", o: ["Корея", "Чин", "Япония", "ИМА"], a: "Япония"},
+        {q: "Муҳаррики V12 чанд силиндр дорад?", o: ["8", "12", "10", "16"], a: "12"},
+        {q: "Кадом мошинро 'Афсонаи Олмон' меноманд?", o: ["Mercedes-Benz", "Fiat", "Renault", "Peugeot"], a: "Mercedes-Benz"},
+        {q: "Аввалин мошини барқии машҳур дар ҷаҳон?", o: ["Tesla", "Leaf", "Taycan", "Bolt"], a: "Tesla"},
+        {q: "Кадом бренд рамзи 4 ҳалқа дорад?", o: ["Audi", "Volvo", "Subaru", "Opel"], a: "Audi"},
+        {q: "Муҳаррики гибридӣ бо чӣ кор мекунад?", o: ["Танҳо барқ", "Танҳо бензин", "Бензин ва барқ", "Об"], a: "Бензин ва барқ"},
+        {q: "Ширкати Bugatti ба кадом гурӯҳ дохил мешавад?", o: ["Toyota", "Volkswagen Group", "GM", "Ford"], a: "Volkswagen Group"},
+        {q: "Кадом мошин барои пойгаҳои Формула-1 машҳур аст?", o: ["Ferrari", "Jeep", "Lada", "Land Rover"], a: "Ferrari"},
+        {q: "ABS дар мошин барои чист?", o: ["Барои суръат", "Зидди басташавии чархҳо", "Барои хунуккунӣ", "Мусиқӣ"], a: "Зидди басташавии чархҳо"},
+        {q: "Кадом мошинро 'Мушак' (Mustang) меноманд?", o: ["Chevrolet", "Dodge", "Ford", "Plymouth"], a: "Ford"},
+        {q: "Рамзи ширкати Lamborghini чист?", o: ["Асп", "Барзагов", "Шер", "Паланги сиёҳ"], a: "Барзагов"},
+        {q: "Кадом қисми мошин қувваро ба чархҳо мегузаронад?", o: ["Радиатор", "Трансмиссия", "Аккумулятор", "Филтр"], a: "Трансмиссия"},
+        {q: "Суръати баландтарини Bugatti Chiron тақрибан чанд аст?", o: ["300 км/с", "490 км/с", "250 км/с", "600 км/с"], a: "490 км/с"},
+        {q: "Ширкати Kia аз кадом давлат аст?", o: ["Япония", "Кореяи Ҷанубӣ", "Чин", "Ветнам"], a: "Кореяи Ҷанубӣ"},
+        {q: "Рамзи ширкати Hyundai кадом ҳарф аст?", o: ["H", "S", "M", "T"], a: "H"},
+        {q: "Кадом мошин модели 'Corolla'-ро дорад?", o: ["Honda", "Toyota", "Nissan", "Mazda"], a: "Toyota"},
+        {q: "Вазифаи шамъи (Spark Plug) муҳаррик чист?", o: ["Пошидани сӯзишворӣ", "Оташ задани омехта", "Хунук кардан", "Тоза кардани равған"], a: "Оташ задани омехта"},
+        {q: "Ранги асосии ширкати Ferrari кадом аст?", o: ["Кабуд", "Сурх", "Сиёҳ", "Сафед"], a: "Сурх"},
+        {q: "Кадом бренд модели '911'-ро дорад?", o: ["Porsche", "Lotus", "McLaren", "Aston Martin"], a: "Porsche"},
+        {q: "Ширкати Volvo ба чӣ бештар аҳамият медиҳад?", o: ["Суръат", "Бехатарӣ", "Арзонӣ", "Дизайн"], a: "Бехатарӣ"},
+        {q: "Дар кадом давлат мошинҳои Rolls-Royce истеҳсол мешаванд?", o: ["Олмон", "Инглистон", "ИМА", "Италия"], a: "Инглистон"},
+        {q: "Мошини 'G-Class' (Gelandewagen) ба кадом бренд тааллуқ дорад?", o: ["BMW", "Mercedes-Benz", "Volkswagen", "Audi"], a: "Mercedes-Benz"},
+        {q: "Сӯзишвории асосии мошинҳои Tesla чист?", o: ["Дизел", "Бензин", "Нерӯи барқ", "Газ"], a: "Нерӯи барқ"},
+        {q: "Кадом ширкат 'Camry'-ро мебарорад?", o: ["Toyota", "Lexus", "Subaru", "Mitsubishi"], a: "Toyota"},
+        {q: "Рамзи ширкати Mercedes-Benz чанд гӯша дорад?", o: ["2", "3", "4", "5"], a: "3"},
+        {q: "Мошини модели 'Civic' моли кадом ширкат аст?", o: ["Toyota", "Honda", "Nissan", "Suzuki"], a: "Honda"},
+        {q: "Кадом қисми мошин дудро берун мебарорад?", o: ["Карбюратор", "Глушител (Выхлоп)", "Генератор", "Стартер"], a: "Глушител (Выхлоп)"},
+        {q: "Кадом бренд 'Lancer Evolution'-ро машҳур кард?", o: ["Mitsubishi", "Subaru", "Nissan", "Mazda"], a: "Mitsubishi"},
+        {q: "Ширкати Chevrolet ба кадом консерн дохил мешавад?", o: ["General Motors", "Ford", "Stellantis", "Toyota"], a: "General Motors"},
+        {q: "Ватани мошинҳои Fiat?", o: ["Испания", "Италия", "Франсия", "Бразилия"], a: "Италия"},
+        {q: "Кадом мошинро 'Skyline' меноманд?", o: ["Nissan", "Toyota", "Honda", "Mitsubishi"], a: "Nissan"},
+        {q: "Барои чӣ дар мошин равған (Oil) иваз мекунанд?", o: ["Барои суръат", "Барои молидани қисмҳо", "Барои садо", "Барои чароғҳо"], a: "Барои молидани қисмҳо"},
+        {q: "Кадом ширкат модели 'Range Rover'-ро дорад?", o: ["Land Rover", "Jeep", "Hummer", "Ford"], a: "Land Rover"},
+        {q: "Мошини 'M5' ба кадом серияи BMW тааллуқ дорад?", o: ["3-серия", "5-серия", "7-серия", "X-серия"], a: "5-серия"},
+        {q: "Кадом бренд модели 'RX-7'-ро бо муҳаррики роторӣ дошт?", o: ["Nissan", "Mazda", "Toyota", "Honda"], a: "Mazda"},
+        {q: "Рамзи ширкати Peugeot кадом ҳайвон аст?", o: ["Шер", "Паланг", "Гург", "Хирс"], a: "Шер"},
+        {q: "Ширкати Skoda аз кадом давлат аст?", o: ["Полша", "Чехия", "Словакия", "Венгрия"], a: "Чехия"},
+        {q: "Кадом мошин модели 'Golf'-ро машҳур кард?", o: ["Opel", "Volkswagen", "Ford", "Seat"], a: "Volkswagen"},
+        {q: "Вазифаи турбина дар мошин чист?", o: ["Хам кардани чарх", "Зиёд кардани қувваи муҳаррик", "Кам кардани бензин", "Тоза кардани ҳаво"], a: "Зиёд кардани қувваи муҳаррик"},
+        {q: "Логотипи Cadillac чӣ гуна аст?", o: ["Ситора", "Герб", "Ҳайвон", "Доира"], a: "Герб"},
+        {q: "Кадом ширкат 'Cruiser'-ҳои машҳур дорад?", o: ["Toyota", "Nissan", "Jeep", "Mitsubishi"], a: "Toyota"},
+        {q: "Мошини 'Impreza WRX' рамзи кадом бренд аст?", o: ["Subaru", "Suzuki", "Mitsubishi", "Mazda"], a: "Subaru"},
+        {q: "Ширкати Jeep аз кадом давлат аст?", o: ["Олмон", "ИМА", "Япония", "Италия"], a: "ИМА"},
+        {q: "Муҳаррики 'Boxer' дар кадом мошинҳо бисёр аст?", o: ["Subaru", "Toyota", "BMW", "Audi"], a: "Subaru"},
+        {q: "Кадом бренд 'Supra'-ро истеҳсол мекунад?", o: ["Nissan", "Toyota", "Honda", "Mazda"], a: "Toyota"},
+        {q: "Рамзи ширкати Jaguar чист?", o: ["Паланг", "Ягуар", "Шер", "Гурба"], a: "Ягуар"},
+        {q: "Мошини 'E-class' моли кадом бренд аст?", o: ["BMW", "Audi", "Mercedes-Benz", "Lexus"], a: "Mercedes-Benz"},
+        {q: "Кадом ширкат 'Model S'-ро мебарорад?", o: ["Tesla", "Lucid", "Nio", "Rivian"], a: "Tesla"},
+        {q: "Дар кадом давлат мошинҳои SEAT сохта мешаванд?", o: ["Италия", "Испания", "Португалия", "Франсия"], a: "Испания"},
+        {q: "Кадом бренд 'Prius'-ро ҳамчун аввалин гибрид баровард?", o: ["Honda", "Toyota", "Nissan", "Ford"], a: "Toyota"},
+        {q: "Логотипи Maserati чист?", o: ["Найзаи сешоха", "Шамшер", "Ситора", "Тоҷ"], a: "Найзаи сешоха"},
+        {q: "Мошини 'Duster' моли кадом бренд аст?", o: ["Renault", "Lada", "Nissan", "Dacia"], a: "Renault"},
+        {q: "Кадом мошинро 'Жигули' мегуфтанд?", o: ["Lada", "UAZ", "GAZ", "ZAZ"], a: "Lada"},
+        {q: "Ширкати Pagani кадом намуди мошинҳоро месозад?", o: ["Мошинҳои боркаш", "Гиперкарҳо", "Автобусҳо", "Мошинҳои арзон"], a: "Гиперкарҳо"},
+        {q: "Кадом бренд рамзи 'Ситораи шашгӯша' дорад?", o: ["Subaru", "Mitsubishi", "Mazda", "Lexus"], a: "Subaru"},
+        {q: "Ширкати Koenigsegg аз кадом давлат аст?", o: ["Швеция", "Норвегия", "Дания", "Финляндия"], a: "Швеция"},
+        {q: "Мошини 'Continental GT' моли кадом бренд аст?", o: ["Bentley", "Rolls-Royce", "Jaguar", "Aston Martin"], a: "Bentley"},
+        {q: "Кадом ширкат 'Altima'-ро мебарорад?", o: ["Toyota", "Nissan", "Honda", "Hyundai"], a: "Nissan"},
+        {q: "Вазифаи Радиатор дар мошин чист?", o: ["Гарм кардан", "Хунук кардани муҳаррик", "Тоза кардани ҳаво", "Захираи барқ"], a: "Хунук кардани муҳаррик"},
+        {q: "Кадом бренд 'Vantage'-ро дорад?", o: ["Ferrari", "Aston Martin", "McLaren", "Lotus"], a: "Aston Martin"},
+        {q: "Ширкати Acura бренди боҳашамати кадом ширкат аст?", o: ["Toyota", "Nissan", "Honda", "Mazda"], a: "Honda"},
+        {q: "Мошини 'Escalade' моли кадом бренд аст?", o: ["Chevrolet", "GMC", "Cadillac", "Lincoln"], a: "Cadillac"},
+        {q: "Кадом ширкат 'A8'-ро мебарорад?", o: ["Audi", "BMW", "Mercedes", "Lexus"], a: "Audi"},
+        {q: "Рамзи ширкати Alfa Romeo чӣ дорад?", o: ["Мор ва Салиб", "Шер", "Асп", "Уқоб"], a: "Мор ва Салиб"},
+        {q: "Кадом мошин модели 'Focus'-ро дорад?", o: ["Ford", "Opel", "VW", "Renault"], a: "Ford"},
+        {q: "Ширкати Suzuki аз кадом давлат аст?", o: ["Чин", "Корея", "Япония", "Ҳиндустон"], a: "Япония"},
+        {q: "Мошини 'Tico' моли кадом ширкат буд?", o: ["Daewoo", "Hyundai", "Kia", "Chevrolet"], a: "Daewoo"},
+        {q: "Кадом бренд 'Cherokee'-ро дорад?", o: ["Jeep", "Ford", "Dodge", "Toyota"], a: "Jeep"}
+    ];
+
+    let currentQIndex = 0;
+    let score = 0;
+    let timerValue = 45;
+    let timerInterval;
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+        document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    function toggleTheme(mode) {
+        if(mode === 'light') document.body.classList.add('light-mode');
+        else document.body.classList.remove('light-mode');
+    }
+
+    function startGame() {
+        currentQIndex = 0;
+        score = 0;
+        showScreen('screen-game');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        clearInterval(timerInterval);
+        timerValue = 45;
+        document.getElementById('timer').innerText = timerValue;
+        document.getElementById('hint-display').innerText = "";
+        
+        const qData = questions[currentQIndex];
+        document.getElementById('question-counter').innerText = `Саволи ${currentQIndex + 1} аз ${questions.length}`;
+        document.getElementById('question-text').innerText = qData.q;
+        
+        const box = document.getElementById('options-box');
+        box.innerHTML = '';
+
+        // Омехта кардани вариантҳо (Shuffle)
+        const shuffledOptions = [...qData.o].sort(() => Math.random() - 0.5);
+
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, qData.a);
+            box.appendChild(btn);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timerValue--;
+            document.getElementById('timer').innerText = timerValue;
+            if(timerValue <= 0) {
+                clearInterval(timerInterval);
+                highlightCorrect(questions[currentQIndex].a);
+                setTimeout(nextQuestion, 2000);
+            }
+        }, 1000);
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        clearInterval(timerInterval);
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.disabled = true);
+
+        if(selected === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            highlightCorrect(correct);
+        }
+
+        setTimeout(nextQuestion, 2000);
+    }
+
+    function highlightCorrect(correct) {
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => {
+            if(b.innerText === correct) b.classList.add('correct');
+        });
+    }
+
+    function nextQuestion() {
+        currentQIndex++;
+        if(currentQIndex < questions.length) {
+            loadQuestion();
+        } else {
+            alert(`Бозӣ тамом шуд! Натиҷаи шумо: ${score} аз ${questions.length}`);
+            exitToMenu();
+        }
+    }
+
+    function useHint() {
+        const correct = questions[currentQIndex].a;
+        document.getElementById('hint-display').innerText = "Ҳарфи аввал: " + correct.charAt(0);
+    }
+
+    function exitToMenu() {
+        clearInterval(timerInterval);
+        showScreen('screen-menu');
+    }
+</script>
+
+</body>
+</html>
